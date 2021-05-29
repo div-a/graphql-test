@@ -95,7 +95,7 @@ const RootQueryType = new GraphQLObjectType({
                 }
             },
             resolve: (parent, args) => {
-                return authors.find(author => author.id === author.id);
+                return authors.find(author => author.id === args.id);
             }
         },
         books: {
@@ -111,8 +111,42 @@ const RootQueryType = new GraphQLObjectType({
     })
 })
 
+// call with mutation { addBook(name: 'new name', authorId: 1){id, name} }
+const RootMutationType = new GraphQLObjectType({
+    name: 'Mutation',
+    description: 'Root Mutation',
+    fields: () => ({
+        addBook: {
+            type: BookType,
+            description: 'Add a book',
+            args: {
+                Name: { type: GraphQLNonNull(GraphQLString) },
+                authorId: { type: GraphQLNonNull(GraphQLInt) }
+            },
+            resolve: (parent, args) => {
+                const book = { id: books.length + 1, name: args.name, authorId: args.authorId };
+                books.push(book)
+                return book;
+            }
+        },
+        addAuthor: {
+            type: AuthorType,
+            description: 'Add an author',
+            args: {
+                name: { type: GraphQLNonNull(GraphQLString) },
+            },
+            resolve: (parent, args) => {
+                const author = { id: authors.length + 1, name: args.name };
+                authors.push(author)
+                return author;
+            }
+        }
+    })
+})
+
 const schema = new GraphQLSchema({
-    query: RootQueryType
+    query: RootQueryType,
+    mutation: RootMutationType
 })
 
 app.use('/graphql', graphqlHTTP({
